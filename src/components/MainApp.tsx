@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from './Navigation';
 import { Dashboard } from './Dashboard';
 import { ProductSection } from './ProductSection';
+import { SchemesSection } from './SchemesSection';
 
 export function MainApp() {
   const { user } = useAuth();
@@ -16,15 +17,7 @@ export function MainApp() {
       case 'products':
         return <ProductSection />;
       case 'schemes':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold tracking-tight">Schemes</h2>
-            <p className="text-muted-foreground">View active schemes and promotions</p>
-            <div className="text-center py-12 text-gray-500">
-              Schemes section - Coming soon
-            </div>
-          </div>
-        );
+        return <SchemesSection />;
       case 'sales':
         return (
           <div className="space-y-6">

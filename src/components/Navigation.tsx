@@ -72,7 +72,7 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
           {user?.role}
         </p>
         <p className="text-xs text-gray-500">
-          {user?.regionId}
+          {user?.region}
         </p>
       </div>
       

@@ -1,77 +1,90 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { loginUser, logoutUser, resetPassword, getUserById } from '@/services/firebaseService';
-import { FirebaseUser } from '@/types/firebase';
+import { User, LoginCredentials } from '@/types/auth';
 
 interface AuthContextType {
-  user: FirebaseUser | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  user: User | null;
+  login: (credentials: LoginCredentials) => Promise<boolean>;
   logout: () => void;
-  forgotPassword: (email: string) => Promise<void>;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Mock user data for demonstration
+const mockUsers: User[] = [
+  {
+    id: '1',
+    username: 'distributor1',
+    role: 'distributor',
+    name: 'John Distributor',
+    region: 'North Region',
+    staffId: 'staff1'
+  },
+  {
+    id: '2',
+    username: 'staff1',
+    role: 'staff',
+    name: 'Jane Staff',
+    region: 'North Region',
+    territory: 'North Territory',
+    managerId: 'manager1'
+  },
+  {
+    id: '3',
+    username: 'manager1',
+    role: 'manager',
+    name: 'Mike Manager',
+    region: 'North Region'
+  },
+  {
+    id: '4',
+    username: 'accountant1',
+    role: 'accountant',
+    name: 'Alice Accountant',
+    region: 'State Level'
+  }
+];
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Get user data from Firestore
-        const userData = await getUserById(firebaseUser.uid);
-        setUser(userData);
-      } else {
-        setUser(null);
-      }
-      setIsLoading(false);
-    });
-
-    return () => unsubscribe();
+    // Check for stored user session
+    const storedUser = localStorage.getItem('pesticide-user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
     setIsLoading(true);
-    try {
-      const userData = await loginUser(email, password);
-      if (userData) {
-        setUser(userData);
-        setIsLoading(false);
-        return true;
-      }
+    
+    // Mock authentication - in real app, this would be an API call
+    const foundUser = mockUsers.find(
+      u => u.username === credentials.username && u.role === credentials.role
+    );
+
+    if (foundUser && credentials.password === 'password123') {
+      setUser(foundUser);
+      localStorage.setItem('pesticide-user', JSON.stringify(foundUser));
       setIsLoading(false);
-      return false;
-    } catch (error) {
-      console.error('Login failed:', error);
-      setIsLoading(false);
-      return false;
+      return true;
     }
+    
+    setIsLoading(false);
+    return false;
   };
 
-  const logout = async () => {
-    try {
-      await logoutUser();
-      setUser(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
-
-  const forgotPassword = async (email: string): Promise<void> => {
-    try {
-      await resetPassword(email);
-    } catch (error) {
-      console.error('Password reset failed:', error);
-      throw error;
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('pesticide-user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, forgotPassword, isLoading }}>
+    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

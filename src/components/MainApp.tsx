@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from './Navigation';
@@ -60,27 +59,17 @@ export function MainApp() {
                   <p className="text-lg">{user?.name}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Email</label>
-                  <p className="text-lg">{user?.email}</p>
-                </div>
-                <div>
                   <label className="text-sm font-medium text-gray-600">Role</label>
                   <p className="text-lg capitalize">{user?.role}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Region ID</label>
-                  <p className="text-lg">{user?.regionId}</p>
+                  <label className="text-sm font-medium text-gray-600">Region</label>
+                  <p className="text-lg">{user?.region}</p>
                 </div>
-                {user?.staffId && (
+                {user?.territory && (
                   <div>
-                    <label className="text-sm font-medium text-gray-600">Staff ID</label>
-                    <p className="text-lg">{user.staffId}</p>
-                  </div>
-                )}
-                {user?.managerId && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Manager ID</label>
-                    <p className="text-lg">{user.managerId}</p>
+                    <label className="text-sm font-medium text-gray-600">Territory</label>
+                    <p className="text-lg">{user.territory}</p>
                   </div>
                 )}
               </div>

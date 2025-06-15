@@ -1,16 +1,17 @@
 
 export interface User {
-  uid: string;
-  name: string;
-  email: string;
+  id: string;
+  username: string;
   role: 'distributor' | 'staff' | 'manager' | 'accountant';
-  regionId: string;
-  staffId?: string; // for distributor
-  managerId?: string; // for staff
-  contactInfo?: string;
+  name: string;
+  region: string;
+  territory?: string;
+  managerId?: string;
+  staffId?: string;
 }
 
 export interface LoginCredentials {
-  email: string;
+  username: string;
   password: string;
+  role: 'distributor' | 'staff' | 'manager' | 'accountant';
 }

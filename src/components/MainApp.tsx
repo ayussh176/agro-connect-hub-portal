@@ -1,10 +1,11 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigation } from './Navigation';
 import { Dashboard } from './Dashboard';
 import { ProductSection } from './ProductSection';
 import { SchemesSection } from './SchemesSection';
+import { SalesManagement } from './SalesManagement';
+import { CollectionManagement } from './CollectionManagement';
 
 export function MainApp() {
   const { user } = useAuth();
@@ -23,9 +24,13 @@ export function MainApp() {
           <div className="space-y-6">
             <h2 className="text-3xl font-bold tracking-tight">Sales Management</h2>
             <p className="text-muted-foreground">Manage distributor sales data</p>
-            <div className="text-center py-12 text-gray-500">
-              Sales management section - Coming soon
-            </div>
+            {user?.role === 'accountant' ? (
+              <SalesManagement />
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                Sales management section - Coming soon
+              </div>
+            )}
           </div>
         );
       case 'collection':
@@ -33,9 +38,13 @@ export function MainApp() {
           <div className="space-y-6">
             <h2 className="text-3xl font-bold tracking-tight">Collection Management</h2>
             <p className="text-muted-foreground">Manage payment collections</p>
-            <div className="text-center py-12 text-gray-500">
-              Collection management section - Coming soon
-            </div>
+            {user?.role === 'accountant' ? (
+              <CollectionManagement />
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                Collection management section - Coming soon
+              </div>
+            )}
           </div>
         );
       case 'profile':

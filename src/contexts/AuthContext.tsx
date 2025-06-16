@@ -51,10 +51,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user session
+    // Check for stored user session and authentication token
     const storedUser = localStorage.getItem('pesticide-user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const authToken = localStorage.getItem('pesticide-auth-token');
+    const sessionExpiry = localStorage.getItem('pesticide-session-expiry');
+    
+    if (storedUser && authToken && sessionExpiry) {
+      const expiryTime = parseInt(sessionExpiry, 10);
+      const currentTime = Date.now();
+      
+      // Check if session is still valid (expires after 30 days)
+      if (currentTime < expiryTime) {
+        setUser(JSON.parse(storedUser));
+      } else {
+        // Session expired, clear storage
+        localStorage.removeItem('pesticide-user');
+        localStorage.removeItem('pesticide-auth-token');
+        localStorage.removeItem('pesticide-session-expiry');
+      }
     }
     setIsLoading(false);
   }, []);
@@ -68,8 +82,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     if (foundUser && credentials.password === 'password123') {
+      const authToken = `auth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const sessionExpiry = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 days
+      
       setUser(foundUser);
       localStorage.setItem('pesticide-user', JSON.stringify(foundUser));
+      localStorage.setItem('pesticide-auth-token', authToken);
+      localStorage.setItem('pesticide-session-expiry', sessionExpiry.toString());
       setIsLoading(false);
       return true;
     }
@@ -81,6 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('pesticide-user');
+    localStorage.removeItem('pesticide-auth-token');
+    localStorage.removeItem('pesticide-session-expiry');
   };
 
   return (

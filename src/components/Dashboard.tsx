@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,6 +5,7 @@ import { DollarSign, TrendingUp, Users, AlertCircle } from 'lucide-react';
 import { SalesBarChart } from './SalesBarChart';
 import { TeamMembersModal } from './TeamMembersModal';
 import { DistributorsModal } from './DistributorsModal';
+import { ManagerDistributorsModal } from './ManagerDistributorsModal';
 
 // Mock data for demonstration
 const mockSalesData = {
@@ -80,11 +80,22 @@ const mockDistributors = [
   { id: '4', name: 'Lisa Distributor', code: 'DIST004', monthlySales: 132000, yearlySales: 1580000, monthlyCollection: 118000, yearlyCollection: 1480000 },
 ];
 
+// Mock distributors data for manager region
+const mockManagerDistributors = [
+  { id: '1', name: 'John Distributor', code: 'DIST001', monthlySales: 125000, yearlySales: 1450000, monthlyCollection: 105000, yearlyCollection: 1320000, overdue: 25000 },
+  { id: '2', name: 'Sarah Distributor', code: 'DIST002', monthlySales: 98000, yearlySales: 1200000, monthlyCollection: 88000, yearlyCollection: 1150000, overdue: 18000 },
+  { id: '3', name: 'Mike Distributor', code: 'DIST003', monthlySales: 156000, yearlySales: 1750000, monthlyCollection: 142000, yearlyCollection: 1650000, overdue: 32000 },
+  { id: '4', name: 'Lisa Distributor', code: 'DIST004', monthlySales: 132000, yearlySales: 1580000, monthlyCollection: 118000, yearlyCollection: 1480000, overdue: 28000 },
+  { id: '5', name: 'Tom Distributor', code: 'DIST005', monthlySales: 89000, yearlySales: 1100000, monthlyCollection: 75000, yearlyCollection: 980000, overdue: 15000 }
+];
+
 export function Dashboard() {
   const { user } = useAuth();
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showSalesModal, setShowSalesModal] = useState(false);
   const [showCollectionModal, setShowCollectionModal] = useState(false);
+  const [showManagerMonthlySalesModal, setShowManagerMonthlySalesModal] = useState(false);
+  const [showManagerYearlySalesModal, setShowManagerYearlySalesModal] = useState(false);
 
   const renderDistributorDashboard = () => (
     <div className="space-y-6">
@@ -206,25 +217,31 @@ export function Dashboard() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card 
+          className="cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => setShowManagerMonthlySalesModal(true)}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Monthly Sales</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₹{(mockSalesData.manager.totalMonthlySales / 1000000).toFixed(1)}M</div>
-            <p className="text-xs text-muted-foreground">Team total</p>
+            <p className="text-xs text-muted-foreground">Team total - Click to view distributors</p>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card 
+          className="cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => setShowManagerYearlySalesModal(true)}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Yearly Sales</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">₹{(mockSalesData.manager.totalYearlySales / 1000000).toFixed(1)}M</div>
-            <p className="text-xs text-muted-foreground">Annual team performance</p>
+            <p className="text-xs text-muted-foreground">Annual team performance - Click to view distributors</p>
           </CardContent>
         </Card>
         
@@ -245,6 +262,22 @@ export function Dashboard() {
         isOpen={showTeamModal}
         onClose={() => setShowTeamModal(false)}
         teamMembers={mockTeamMembers}
+      />
+
+      <ManagerDistributorsModal
+        isOpen={showManagerMonthlySalesModal}
+        onClose={() => setShowManagerMonthlySalesModal(false)}
+        distributors={mockManagerDistributors}
+        title="Monthly Sales - Regional Distributors"
+        showYearly={false}
+      />
+
+      <ManagerDistributorsModal
+        isOpen={showManagerYearlySalesModal}
+        onClose={() => setShowManagerYearlySalesModal(false)}
+        distributors={mockManagerDistributors}
+        title="Yearly Sales - Regional Distributors"
+        showYearly={true}
       />
     </div>
   );

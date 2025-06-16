@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit, Save, X } from 'lucide-react';
+import { Edit, Save, X, Search } from 'lucide-react';
 
 interface DistributorCollection {
   id: string;
@@ -58,6 +58,7 @@ const mockDistributorCollection: DistributorCollection[] = [
 export function CollectionManagement() {
   const [distributors, setDistributors] = useState<DistributorCollection[]>(mockDistributorCollection);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [editValues, setEditValues] = useState<{ 
     monthlyCollection: number; 
     yearlyCollection: number; 
@@ -67,6 +68,12 @@ export function CollectionManagement() {
     yearlyCollection: 0,
     overdue: 0
   });
+
+  const filteredDistributors = distributors.filter(distributor =>
+    distributor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    distributor.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    distributor.region.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleEdit = (distributor: DistributorCollection) => {
     setEditingId(distributor.id);
@@ -103,6 +110,15 @@ export function CollectionManagement() {
     <Card>
       <CardHeader>
         <CardTitle>Distributor Collection Management</CardTitle>
+        <div className="relative mt-4">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search by name, code, or region..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
       </CardHeader>
       <CardContent>
         <Table>
@@ -118,7 +134,7 @@ export function CollectionManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {distributors.map((distributor) => (
+            {filteredDistributors.map((distributor) => (
               <TableRow key={distributor.id}>
                 <TableCell className="font-medium">{distributor.code}</TableCell>
                 <TableCell>{distributor.name}</TableCell>
@@ -179,6 +195,11 @@ export function CollectionManagement() {
             ))}
           </TableBody>
         </Table>
+        {filteredDistributors.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No distributors found matching your search.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

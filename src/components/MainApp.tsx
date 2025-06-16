@@ -1,92 +1,41 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigation } from './Navigation';
 import { Dashboard } from './Dashboard';
 import { ProductSection } from './ProductSection';
+import { AccountantProductSection } from './AccountantProductSection';
 import { SchemesSection } from './SchemesSection';
+import { SchemeManagement } from './SchemeManagement';
 import { SalesManagement } from './SalesManagement';
 import { CollectionManagement } from './CollectionManagement';
+import { Navigation } from './Navigation';
 
 export function MainApp() {
   const { user } = useAuth();
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState<string>('dashboard');
 
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
         return <Dashboard />;
       case 'products':
-        return <ProductSection />;
+        // Show AccountantProductSection for accountants, regular ProductSection for others
+        return user?.role === 'accountant' ? <AccountantProductSection /> : <ProductSection />;
       case 'schemes':
-        return <SchemesSection />;
+        return user?.role === 'manager' ? <SchemeManagement /> : <SchemesSection />;
       case 'sales':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold tracking-tight">Sales Management</h2>
-            <p className="text-muted-foreground">Manage distributor sales data</p>
-            {user?.role === 'accountant' ? (
-              <SalesManagement />
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Sales management section - Coming soon
-              </div>
-            )}
-          </div>
-        );
-      case 'collection':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold tracking-tight">Collection Management</h2>
-            <p className="text-muted-foreground">Manage payment collections</p>
-            {user?.role === 'accountant' ? (
-              <CollectionManagement />
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Collection management section - Coming soon
-              </div>
-            )}
-          </div>
-        );
-      case 'profile':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold tracking-tight">Profile</h2>
-            <p className="text-muted-foreground">Manage your account settings</p>
-            <div className="bg-white p-6 rounded-lg border">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Name</label>
-                  <p className="text-lg">{user?.name}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Role</label>
-                  <p className="text-lg capitalize">{user?.role}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Region</label>
-                  <p className="text-lg">{user?.region}</p>
-                </div>
-                {user?.territory && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-600">Territory</label>
-                    <p className="text-lg">{user.territory}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
+        return <SalesManagement />;
+      case 'collections':
+        return <CollectionManagement />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-100">
       <Navigation activeSection={activeSection} onSectionChange={setActiveSection} />
-      
       <main className="flex-1 overflow-auto">
-        <div className="p-6">
+        <div className="p-8">
           {renderContent()}
         </div>
       </main>

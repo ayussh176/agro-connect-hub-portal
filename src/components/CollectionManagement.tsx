@@ -113,12 +113,14 @@ export function CollectionManagement() {
     doc.setFontSize(18);
     doc.text('Distributor Collection Report', 14, 22);
     
-    const tableColumn = ['Distributor ID', 'Distributor Name', 'Monthly Collection (₹)', 'Yearly Collection (₹)'];
+    const tableColumn = ['Distributor ID', 'Distributor Name', 'Region', 'Monthly Collection (₹)', 'Yearly Collection (₹)', 'Overdue (₹)'];
     const tableRows = filteredDistributors.map(distributor => [
       distributor.code,
       distributor.name,
+      distributor.region,
       distributor.monthlyCollection.toLocaleString(),
-      distributor.yearlyCollection.toLocaleString()
+      distributor.yearlyCollection.toLocaleString(),
+      distributor.overdue.toLocaleString()
     ]);
 
     (doc as any).autoTable({
@@ -134,8 +136,10 @@ export function CollectionManagement() {
     const exportData = filteredDistributors.map(distributor => ({
       'Distributor ID': distributor.code,
       'Distributor Name': distributor.name,
+      'Region': distributor.region,
       'Monthly Collection (₹)': distributor.monthlyCollection,
-      'Yearly Collection (₹)': distributor.yearlyCollection
+      'Yearly Collection (₹)': distributor.yearlyCollection,
+      'Overdue (₹)': distributor.overdue
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);

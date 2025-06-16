@@ -97,10 +97,11 @@ export function SalesManagement() {
     doc.setFontSize(18);
     doc.text('Distributor Sales Report', 14, 22);
     
-    const tableColumn = ['Distributor ID', 'Distributor Name', 'Monthly Sales (₹)', 'Yearly Sales (₹)'];
+    const tableColumn = ['Distributor ID', 'Distributor Name', 'Region', 'Monthly Sales (₹)', 'Yearly Sales (₹)'];
     const tableRows = filteredDistributors.map(distributor => [
       distributor.code,
       distributor.name,
+      distributor.region,
       distributor.monthlySales.toLocaleString(),
       distributor.yearlySales.toLocaleString()
     ]);
@@ -118,6 +119,7 @@ export function SalesManagement() {
     const exportData = filteredDistributors.map(distributor => ({
       'Distributor ID': distributor.code,
       'Distributor Name': distributor.name,
+      'Region': distributor.region,
       'Monthly Sales (₹)': distributor.monthlySales,
       'Yearly Sales (₹)': distributor.yearlySales
     }));

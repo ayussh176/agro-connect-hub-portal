@@ -1,10 +1,12 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit, Save, X, Search } from 'lucide-react';
+import { Edit, Save, X, Search, Download, FileText } from 'lucide-react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 interface DistributorSales {
   id: string;
@@ -90,10 +92,58 @@ export function SalesManagement() {
     setEditValues({ monthlySales: 0, yearlySales: 0 });
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Distributor Sales Report', 14, 22);
+    
+    const tableColumn = ['Distributor ID', 'Distributor Name', 'Monthly Sales (₹)', 'Yearly Sales (₹)'];
+    const tableRows = filteredDistributors.map(distributor => [
+      distributor.code,
+      distributor.name,
+      distributor.monthlySales.toLocaleString(),
+      distributor.yearlySales.toLocaleString()
+    ]);
+
+    (doc as any).autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+    });
+
+    doc.save('distributor-sales-report.pdf');
+  };
+
+  const exportToExcel = () => {
+    const exportData = filteredDistributors.map(distributor => ({
+      'Distributor ID': distributor.code,
+      'Distributor Name': distributor.name,
+      'Monthly Sales (₹)': distributor.monthlySales,
+      'Yearly Sales (₹)': distributor.yearlySales
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sales');
+    XLSX.writeFile(wb, 'distributor-sales-report.xlsx');
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Distributor Sales Management</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Distributor Sales Management</CardTitle>
+          <div className="flex gap-2">
+            <Button onClick={exportToPDF} variant="outline" size="sm">
+              <FileText className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+            <Button onClick={exportToExcel} variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export Excel
+            </Button>
+          </div>
+        </div>
         <div className="relative mt-4">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input

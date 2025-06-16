@@ -1,13 +1,15 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ChevronDown, ChevronUp, Save } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Save, Download, FileText } from 'lucide-react';
 import { Product } from '@/types/product';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 // Mock product data
 const mockProducts: Product[] = [
@@ -81,13 +83,59 @@ export function AccountantProductSection() {
     console.log(`Updated availability for product ${productId}:`, newAvailability);
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text('Products Report', 14, 22);
+    
+    const tableColumn = ['Product Name', 'Chemical Formula', 'Price (₹)'];
+    const tableRows = filteredProducts.map(product => [
+      product.name,
+      product.chemicalFormula,
+      product.price.toString()
+    ]);
+
+    (doc as any).autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 30,
+    });
+
+    doc.save('products-report.pdf');
+  };
+
+  const exportToExcel = () => {
+    const exportData = filteredProducts.map(product => ({
+      'Product Name': product.name,
+      'Chemical Formula': product.chemicalFormula,
+      'Price (₹)': product.price
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Products');
+    XLSX.writeFile(wb, 'products-report.xlsx');
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Products</h2>
-        <p className="text-muted-foreground">
-          Manage product availability and view pricing information
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Products</h2>
+          <p className="text-muted-foreground">
+            Manage product availability and view pricing information
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={exportToPDF} variant="outline">
+            <FileText className="h-4 w-4 mr-2" />
+            Export PDF
+          </Button>
+          <Button onClick={exportToExcel} variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export Excel
+          </Button>
+        </div>
       </div>
 
       <div className="relative">

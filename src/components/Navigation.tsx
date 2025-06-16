@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -52,7 +51,8 @@ export function Navigation({ activeSection, onSectionChange }: NavigationProps) 
         return [
           baseItems[0],
           { id: 'sales', label: 'Sales', icon: DollarSign },
-          { id: 'collection', label: 'Collection', icon: Users },
+          { id: 'collections', label: 'Collections', icon: Users },
+          baseItems[1],
           baseItems[2]
         ];
       default:

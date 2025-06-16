@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dashboard } from './Dashboard';
@@ -9,6 +8,7 @@ import { SchemeManagement } from './SchemeManagement';
 import { SalesManagement } from './SalesManagement';
 import { CollectionManagement } from './CollectionManagement';
 import { Navigation } from './Navigation';
+import { Profile } from './Profile';
 import { Scheme } from '@/types/product';
 
 // Mock schemes data
@@ -69,6 +69,8 @@ export function MainApp() {
         return <SalesManagement />;
       case 'collections':
         return <CollectionManagement />;
+      case 'profile':
+        return <Profile />;
       default:
         return <Dashboard />;
     }

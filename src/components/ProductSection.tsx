@@ -1,100 +1,91 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, ChevronDown, ChevronUp, Edit, Download, FileText, Filter } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+import {
+  Search, ChevronDown, ChevronUp, Edit, Download, FileText, Filter
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Product } from '@/types/product';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
-// Mock product data
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'CropGuard Pro',
-    chemicalFormula: 'C12H8Cl6O',
-    price: 450,
-    availability: 'In Stock',
-    dose: '2-3 ml per liter',
-    category: 'Insecticide'
-  },
-  {
-    id: '2',
-    name: 'FungiFree Max',
-    chemicalFormula: 'C14H9Cl5',
-    price: 380,
-    availability: 'Limited',
-    dose: '1-2 ml per liter',
-    category: 'Fungicide'
-  },
-  {
-    id: '3',
-    name: 'WeedKiller Ultra',
-    chemicalFormula: 'C15H15Cl2N2O2',
-    price: 520,
-    availability: 'Out of Stock',
-    dose: '3-4 ml per liter',
-    category: 'Herbicide'
-  },
-  {
-    id: '4',
-    name: 'PlantBoost',
-    chemicalFormula: 'C8H18N4O4',
-    price: 290,
-    availability: 'In Stock',
-    dose: '5-10 ml per liter',
-    category: 'Growth Regulator'
-  }
-];
+import {
+  collection, getDocs, doc, updateDoc
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export function ProductSection() {
   const { user } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
-  const [products, setProducts] = useState(mockProducts);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
 
-  const canEditPrice = user?.role === 'manager';
+  const canEditPrice = user?.role === 'staff' || user?.role === 'manager';
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const snapshot = await getDocs(collection(db, 'priceLists'));
+      const data: Product[] = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...(doc.data() as Omit<Product, 'id'>)
+      }));
+      setProducts(data);
+    };
+    fetchProducts();
+  }, []);
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.chemicalFormula.toLowerCase().includes(searchTerm.toLowerCase());
-    
     const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-    
     return matchesSearch && matchesCategory;
   });
 
   const getAvailabilityColor = (availability: string) => {
     switch (availability) {
-      case 'In Stock':
-        return 'bg-green-500';
-      case 'Limited':
-        return 'bg-yellow-500';
-      case 'Out of Stock':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
+      case 'In Stock': return 'bg-green-500';
+      case 'Limited': return 'bg-yellow-500';
+      case 'Out of Stock': return 'bg-red-500';
+      default: return 'bg-gray-500';
     }
   };
 
-  const handlePriceUpdate = (productId: string, newPrice: number) => {
-    setProducts(prev => prev.map(product =>
-      product.id === productId ? { ...product, price: newPrice } : product
-    ));
+  const handlePriceUpdate = async (productId: string, newPrice: number) => {
+    try {
+      const ref = doc(db, 'priceLists', productId);
+      await updateDoc(ref, { price: newPrice });
+      setProducts(prev =>
+        prev.map(product =>
+          product.id === productId ? { ...product, price: newPrice } : product
+        )
+      );
+    } catch (err) {
+      console.error("Error updating price:", err);
+    }
   };
 
   const exportToPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(18);
     doc.text('Products Report', 14, 22);
-    
-    const tableColumn = ['Product Name', 'Chemical Formula', 'Price (₹)'];
+
     const tableRows = filteredProducts.map(product => [
       product.name,
       product.chemicalFormula,
@@ -102,22 +93,21 @@ export function ProductSection() {
     ]);
 
     (doc as any).autoTable({
-      head: [tableColumn],
+      head: [['Product Name', 'Chemical Formula', 'Price (₹)']],
       body: tableRows,
-      startY: 30,
+      startY: 30
     });
 
     doc.save('products-report.pdf');
   };
 
   const exportToExcel = () => {
-    const exportData = filteredProducts.map(product => ({
+    const data = filteredProducts.map(product => ({
       'Product Name': product.name,
       'Chemical Formula': product.chemicalFormula,
       'Price (₹)': product.price
     }));
-
-    const ws = XLSX.utils.json_to_sheet(exportData);
+    const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Products');
     XLSX.writeFile(wb, 'products-report.xlsx');
@@ -134,12 +124,10 @@ export function ProductSection() {
         </div>
         <div className="flex gap-2">
           <Button onClick={exportToPDF} variant="outline">
-            <FileText className="h-4 w-4 mr-2" />
-            Export PDF
+            <FileText className="h-4 w-4 mr-2" /> Export PDF
           </Button>
           <Button onClick={exportToExcel} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export Excel
+            <Download className="h-4 w-4 mr-2" /> Export Excel
           </Button>
         </div>
       </div>
@@ -176,9 +164,9 @@ export function ProductSection() {
           <Card key={product.id}>
             <Collapsible
               open={expandedProduct === product.id}
-              onOpenChange={() => setExpandedProduct(
-                expandedProduct === product.id ? null : product.id
-              )}
+              onOpenChange={() =>
+                setExpandedProduct(expandedProduct === product.id ? null : product.id)
+              }
             >
               <CollapsibleTrigger asChild>
                 <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
@@ -193,14 +181,14 @@ export function ProductSection() {
                         {product.availability}
                       </Badge>
                     </div>
-                    {expandedProduct === product.id ? 
-                      <ChevronUp className="h-4 w-4" /> : 
+                    {expandedProduct === product.id ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
                       <ChevronDown className="h-4 w-4" />
-                    }
+                    )}
                   </div>
                 </CardHeader>
               </CollapsibleTrigger>
-              
               <CollapsibleContent>
                 <CardContent className="pt-0">
                   <div className="grid md:grid-cols-3 gap-4">
@@ -211,8 +199,8 @@ export function ProductSection() {
                           ₹{product.price}
                         </span>
                         {canEditPrice && (
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => {
                               const newPrice = prompt('Enter new price:', product.price.toString());
@@ -221,14 +209,12 @@ export function ProductSection() {
                               }
                             }}
                           >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit
+                            <Edit className="h-3 w-3 mr-1" /> Edit
                           </Button>
                         )}
                       </div>
                       <p className="text-sm text-gray-500">per unit</p>
                     </div>
-                    
                     <div className="space-y-2">
                       <h4 className="font-semibold text-sm text-gray-600">Availability</h4>
                       <Badge className={getAvailabilityColor(product.availability)}>
@@ -236,7 +222,6 @@ export function ProductSection() {
                       </Badge>
                       <p className="text-sm text-gray-500">Current stock status</p>
                     </div>
-                    
                     <div className="space-y-2">
                       <h4 className="font-semibold text-sm text-gray-600">Recommended Dose</h4>
                       <p className="text-lg font-medium">{product.dose}</p>

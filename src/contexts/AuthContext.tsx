@@ -1,9 +1,32 @@
+import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User as FirebaseUser,
+} from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, LoginCredentials } from '@/types/auth';
+interface AppUser {
+  id: string;
+  username: string;
+  role: string;
+  name: string;
+  region?: string;
+  staffId?: string;
+  territory?: string;
+  managerId?: string;
+}
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+  role: string;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   login: (credentials: LoginCredentials) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
@@ -11,97 +34,66 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data for demonstration
-const mockUsers: User[] = [
-  {
-    id: '1',
-    username: 'distributor1',
-    role: 'distributor',
-    name: 'John Distributor',
-    region: 'North Region',
-    staffId: 'staff1'
-  },
-  {
-    id: '2',
-    username: 'staff1',
-    role: 'staff',
-    name: 'Jane Staff',
-    region: 'North Region',
-    territory: 'North Territory',
-    managerId: 'manager1'
-  },
-  {
-    id: '3',
-    username: 'manager1',
-    role: 'manager',
-    name: 'Mike Manager',
-    region: 'North Region'
-  },
-  {
-    id: '4',
-    username: 'accountant1',
-    role: 'accountant',
-    name: 'Alice Accountant',
-    region: 'State Level'
-  }
-];
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for stored user session and authentication token
-    const storedUser = localStorage.getItem('pesticide-user');
-    const authToken = localStorage.getItem('pesticide-auth-token');
-    const sessionExpiry = localStorage.getItem('pesticide-session-expiry');
-    
-    if (storedUser && authToken && sessionExpiry) {
-      const expiryTime = parseInt(sessionExpiry, 10);
-      const currentTime = Date.now();
-      
-      // Check if session is still valid (expires after 30 days)
-      if (currentTime < expiryTime) {
-        setUser(JSON.parse(storedUser));
-      } else {
-        // Session expired, clear storage
-        localStorage.removeItem('pesticide-user');
-        localStorage.removeItem('pesticide-auth-token');
-        localStorage.removeItem('pesticide-session-expiry');
-      }
+  const fetchUserDetails = async (firebaseUser: FirebaseUser): Promise<AppUser | null> => {
+    const docRef = doc(db, "users", firebaseUser.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      return {
+        id: firebaseUser.uid,
+        ...docSnap.data(),
+      } as AppUser;
+    } else {
+      console.warn("User document not found");
+      return null;
     }
-    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setIsLoading(true);
+      if (firebaseUser) {
+        const userDetails = await fetchUserDetails(firebaseUser);
+        if (userDetails) {
+          setUser(userDetails);
+        }
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const login = async (credentials: LoginCredentials): Promise<boolean> => {
     setIsLoading(true);
-    
-    // Mock authentication - in real app, this would be an API call
-    const foundUser = mockUsers.find(
-      u => u.username === credentials.username && u.role === credentials.role
-    );
+    try {
+      const result = await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
+      const userDetails = await fetchUserDetails(result.user);
 
-    if (foundUser && credentials.password === 'password123') {
-      const authToken = `auth_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const sessionExpiry = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 days
-      
-      setUser(foundUser);
-      localStorage.setItem('pesticide-user', JSON.stringify(foundUser));
-      localStorage.setItem('pesticide-auth-token', authToken);
-      localStorage.setItem('pesticide-session-expiry', sessionExpiry.toString());
+      if (userDetails?.role === credentials.role) {
+        setUser(userDetails);
+        return true;
+      } else {
+        await signOut(auth); // invalid role
+        return false;
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      return false;
+    } finally {
       setIsLoading(false);
-      return true;
     }
-    
-    setIsLoading(false);
-    return false;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await signOut(auth);
     setUser(null);
-    localStorage.removeItem('pesticide-user');
-    localStorage.removeItem('pesticide-auth-token');
-    localStorage.removeItem('pesticide-session-expiry');
   };
 
   return (
@@ -113,8 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 }

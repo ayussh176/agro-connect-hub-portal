@@ -1,31 +1,41 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
-import { LoginCredentials } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+  role: string;
+}
 
 export function LoginForm() {
   const [credentials, setCredentials] = useState<LoginCredentials>({
-    username: '',
+    email: '',
     password: '',
-    role: 'distributor'
+    role: 'distributor',
   });
+
   const { login, isLoading } = useAuth();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!credentials.username || !credentials.password) {
+
+    const { email, password, role } = credentials;
+    if (!email || !password) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
-        variant: "destructive"
+        title: 'Missing Fields',
+        description: 'Please fill in all fields.',
+        variant: 'destructive',
       });
       return;
     }
@@ -33,9 +43,9 @@ export function LoginForm() {
     const success = await login(credentials);
     if (!success) {
       toast({
-        title: "Login Failed",
-        description: "Invalid credentials. Please try again.",
-        variant: "destructive"
+        title: 'Login Failed',
+        description: 'Invalid credentials or incorrect role selected.',
+        variant: 'destructive',
       });
     }
   };
@@ -57,7 +67,9 @@ export function LoginForm() {
               <Label htmlFor="role">Login As</Label>
               <Select
                 value={credentials.role}
-                onValueChange={(value) => setCredentials(prev => ({ ...prev, role: value as any }))}
+                onValueChange={(value) =>
+                  setCredentials((prev) => ({ ...prev, role: value }))
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select your role" />
@@ -70,45 +82,46 @@ export function LoginForm() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                type="text"
-                value={credentials.username}
-                onChange={(e) => setCredentials(prev => ({ ...prev, username: e.target.value }))}
-                placeholder="Enter your username"
+                id="email"
+                type="email"
+                value={credentials.email}
+                onChange={(e) =>
+                  setCredentials((prev) => ({ ...prev, email: e.target.value }))
+                }
+                placeholder="Enter your email"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={credentials.password}
-                onChange={(e) => setCredentials(prev => ({ ...prev, password: e.target.value }))}
+                onChange={(e) =>
+                  setCredentials((prev) => ({
+                    ...prev,
+                    password: e.target.value,
+                  }))
+                }
                 placeholder="Enter your password"
               />
             </div>
-            
+
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
-            
+
             <div className="text-center">
               <Button variant="link" className="text-sm text-blue-600">
                 Forgot Password?
               </Button>
             </div>
           </form>
-          
-          <div className="mt-4 p-3 bg-gray-50 rounded text-xs text-gray-600">
-            <p><strong>Demo Credentials:</strong></p>
-            <p>Username: distributor1, staff1, manager1, or accountant1</p>
-            <p>Password: password123</p>
-          </div>
         </CardContent>
       </Card>
     </div>

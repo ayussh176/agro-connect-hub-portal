@@ -38,18 +38,22 @@ export function ProductSection() {
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
 
   const canEditPrice = user?.role === 'staff' || user?.role === 'manager';
+  const canEditAvailability = user?.role === 'manager' || user?.role === 'accountant';
+
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      const snapshot = await getDocs(collection(db, 'priceLists'));
-      const data: Product[] = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...(doc.data() as Omit<Product, 'id'>)
-      }));
-      setProducts(data);
-    };
-    fetchProducts();
-  }, []);
+  const fetchProducts = async () => {
+    const snapshot = await getDocs(collection(db, 'products'));
+    const data: Product[] = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...(doc.data() as Omit<Product, 'id'>)
+    }));
+    console.log("Fetched products:", data);
+    setProducts(data);
+  };
+  fetchProducts();
+}, []);
+
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,10 +70,11 @@ export function ProductSection() {
       default: return 'bg-gray-500';
     }
   };
-
+  
+  
   const handlePriceUpdate = async (productId: string, newPrice: number) => {
     try {
-      const ref = doc(db, 'priceLists', productId);
+      const ref = doc(db, 'products', productId);
       await updateDoc(ref, { price: newPrice });
       setProducts(prev =>
         prev.map(product =>

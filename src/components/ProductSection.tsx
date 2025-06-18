@@ -1,21 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
+  Collapsible, CollapsibleContent, CollapsibleTrigger
 } from '@/components/ui/collapsible';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select';
-
 import {
   Search, ChevronDown, ChevronUp, Edit, Download, FileText, Filter
 } from 'lucide-react';
@@ -24,7 +19,6 @@ import { Product } from '@/types/product';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
-
 import {
   collection, getDocs, doc, updateDoc
 } from 'firebase/firestore';
@@ -40,20 +34,18 @@ export function ProductSection() {
   const canEditPrice = user?.role === 'staff' || user?.role === 'manager';
   const canEditAvailability = user?.role === 'manager' || user?.role === 'accountant';
 
-
-  useEffect(() => {
   const fetchProducts = async () => {
     const snapshot = await getDocs(collection(db, 'products'));
     const data: Product[] = snapshot.docs.map(doc => ({
       id: doc.id,
       ...(doc.data() as Omit<Product, 'id'>)
     }));
-    console.log("Fetched products:", data);
     setProducts(data);
   };
-  fetchProducts();
-}, []);
 
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -70,19 +62,19 @@ export function ProductSection() {
       default: return 'bg-gray-500';
     }
   };
-  
-  
+
   const handlePriceUpdate = async (productId: string, newPrice: number) => {
     try {
       const ref = doc(db, 'products', productId);
       await updateDoc(ref, { price: newPrice });
-      setProducts(prev =>
-        prev.map(product =>
-          product.id === productId ? { ...product, price: newPrice } : product
-        )
-      );
-    } catch (err) {
+
+      // Re-fetch to ensure update is reflected correctly from Firestore
+      await fetchProducts();
+
+      alert('Price updated successfully.');
+    } catch (err: any) {
       console.error("Error updating price:", err);
+      alert("Failed to update price: " + err.message);
     }
   };
 
@@ -209,8 +201,10 @@ export function ProductSection() {
                             size="sm"
                             onClick={() => {
                               const newPrice = prompt('Enter new price:', product.price.toString());
-                              if (newPrice && !isNaN(Number(newPrice))) {
+                              if (newPrice?.trim() && !isNaN(Number(newPrice))) {
                                 handlePriceUpdate(product.id, Number(newPrice));
+                              } else {
+                                alert('Please enter a valid number.');
                               }
                             }}
                           >

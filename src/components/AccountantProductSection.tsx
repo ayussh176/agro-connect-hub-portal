@@ -186,7 +186,7 @@ export function AccountantProductSection() {
                       {editingAvailability === product.id ? (
                         <div className="flex items-center space-x-2">
                           <Select
-                            defaultValue={product.availability}
+                            value={availabilityDraft[product.id] ?? product.availability}
                             onValueChange={(value) =>
                               setAvailabilityDraft(prev => ({ ...prev, [product.id]: value }))
                             }
@@ -215,7 +215,13 @@ export function AccountantProductSection() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setEditingAvailability(product.id)}
+                            onClick={() => {
+                              setEditingAvailability(product.id);
+                              setAvailabilityDraft(prev => ({
+                                ...prev,
+                                [product.id]: product.availability
+                              }));
+                            }}
                           >
                             Update
                           </Button>

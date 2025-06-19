@@ -31,7 +31,7 @@ export function ProductSection() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
 
-  const canEditPrice = user?.role === 'staff' || user?.role === 'manager';
+  const canEditPrice = user?.role === 'manager';
   const canEditAvailability = user?.role === 'manager' || user?.role === 'accountant';
 
   const fetchProducts = async () => {

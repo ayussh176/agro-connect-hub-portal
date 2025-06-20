@@ -132,7 +132,6 @@ export function CollectionManagement() {
       'Region': d.region,
       'Monthly Collection (₹)': d.monthlyCollection,
       'Yearly Collection (₹)': d.yearlyCollection,
-      'Overdue (₹)': d.overdue
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);

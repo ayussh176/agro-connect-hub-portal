@@ -116,11 +116,11 @@ export function LoginForm() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
 
-            <div className="text-center">
+            {/* <div className="text-center">
               <Button variant="link" className="text-sm text-blue-600">
                 Forgot Password?
               </Button>
-            </div>
+            </div> */}
           </form>
         </CardContent>
       </Card>

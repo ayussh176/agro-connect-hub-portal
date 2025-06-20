@@ -34,7 +34,6 @@ export function CollectionManagement() {
     overdue: 0
   });
 
-  // 🔥 Fetch data from Firestore
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -44,19 +43,18 @@ export function CollectionManagement() {
           const data = docSnap.data();
           const id = docSnap.id;
 
-          // Access Control
           if (user?.role === 'accountant') {
             result.push({ id, ...data } as DistributorCollection);
           } else if (user?.role === 'staff' && data.region === user.region) {
             result.push({ id, ...data } as DistributorCollection);
-          } else if (user?.role === 'distributor' && id === user.id) {
+          } else if (user?.role === 'distributor' && data.distributorId === user.id) {
             result.push({ id, ...data } as DistributorCollection);
           }
         });
 
         setDistributors(result);
       } catch (error) {
-        console.error("Error fetching collection data:", error);
+        console.error("❌ Error fetching collection data:", error);
       }
     };
 
@@ -94,7 +92,7 @@ export function CollectionManagement() {
 
       setEditingId(null);
     } catch (error) {
-      console.error("Error saving collection data:", error);
+      console.error("❌ Error saving collection data:", error);
     }
   };
 
@@ -110,10 +108,12 @@ export function CollectionManagement() {
 
     const tableColumn = ['Distributor ID', 'Name', 'Region', 'Monthly (₹)', 'Yearly (₹)', 'Overdue (₹)'];
     const tableRows = filteredDistributors.map(d => [
-      d.distributorId, d.name, d.region,
-      d.monthlyCollection.toLocaleString(),
-      d.yearlyCollection.toLocaleString(),
-      d.overdue.toLocaleString()
+      d.distributorId,
+      d.name,
+      d.region,
+      d.monthlyCollection?.toLocaleString() ?? '0',
+      d.yearlyCollection?.toLocaleString() ?? '0',
+      d.overdue?.toLocaleString() ?? '0'
     ]);
 
     autoTable(doc, {
@@ -132,6 +132,7 @@ export function CollectionManagement() {
       'Region': d.region,
       'Monthly Collection (₹)': d.monthlyCollection,
       'Yearly Collection (₹)': d.yearlyCollection,
+      'Overdue (₹)': d.overdue
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
@@ -194,7 +195,7 @@ export function CollectionManagement() {
                       className="w-32"
                     />
                   ) : (
-                    `₹${d.monthlyCollection.toLocaleString()}`
+                    `₹${(d.monthlyCollection ?? 0).toLocaleString()}`
                   )}
                 </TableCell>
                 <TableCell>
@@ -206,7 +207,7 @@ export function CollectionManagement() {
                       className="w-32"
                     />
                   ) : (
-                    `₹${d.yearlyCollection.toLocaleString()}`
+                    `₹${(d.yearlyCollection ?? 0).toLocaleString()}`
                   )}
                 </TableCell>
                 <TableCell>
@@ -218,7 +219,7 @@ export function CollectionManagement() {
                       className="w-32"
                     />
                   ) : (
-                    <span className="text-red-600">₹{d.overdue.toLocaleString()}</span>
+                    <span className="text-red-600">₹{(d.overdue ?? 0).toLocaleString()}</span>
                   )}
                 </TableCell>
                 <TableCell>

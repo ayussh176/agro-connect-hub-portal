@@ -55,7 +55,7 @@ export function LoginForm() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-gray-800">
-            Pesticide Management System
+            KissanKhata
           </CardTitle>
           <CardDescription>
             Sign in to access your dashboard

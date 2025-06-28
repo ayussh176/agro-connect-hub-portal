@@ -37,7 +37,6 @@
 
 ## 📸 Screenshots
 
-> Make sure to upload your screenshots in a `screenshots/` folder and use the following filenames.
 
 ### 🏠 Dashboard View (Role-based)
 ![Dashboard](./screenshots/Dashboard.png)

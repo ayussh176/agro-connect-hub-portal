@@ -31,10 +31,10 @@ export function Profile() {
               <label className="text-sm font-medium text-gray-500">Name</label>
               <p className="text-lg">{user.name}</p>
             </div>
-            <div>
+            {/* <div>
               <label className="text-sm font-medium text-gray-500">Username</label>
               <p className="text-lg">{user.username}</p>
-            </div>
+            </div> */}
             <div>
               <label className="text-sm font-medium text-gray-500">User ID</label>
               <p className="text-lg">{user.id}</p>
@@ -56,12 +56,12 @@ export function Profile() {
               <label className="text-sm font-medium text-gray-500">Region</label>
               <p className="text-lg">{user.region}</p>
             </div>
-            {user.territory && (
+            {/* {user.territory && (
               <div>
                 <label className="text-sm font-medium text-gray-500">Territory</label>
                 <p className="text-lg">{user.territory}</p>
               </div>
-            )}
+            )} */}
           </CardContent>
         </Card>
 

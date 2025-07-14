@@ -1,4 +1,4 @@
-# 🌾 KissanKhata
+# KissanKhata
 
 **KissanKhata** is a role-based web application for **fertilizer product management**, including pricing, stock, schemes, sales, and collection. It streamlines access and actions based on user roles like **Manager**, **Accountant**, **Distributor**, and **Staff**.
 
